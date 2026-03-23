@@ -11,14 +11,16 @@ public class PlaceObject : MonoBehaviour
 {
     public ARRaycastManager raycastManager;
     public ARPlaneManager planeManager;
-    public GameObject objectPrefab;
+    public GameObject[] objectPrefabs;
     public TextMeshProUGUI debugText;
     public GameObject deleteButton;
 
     List<ARRaycastHit> hits = new List<ARRaycastHit>();
     private GameObject selectedObject = null;
     private Camera arCamera;
-    private bool objectPlaced = false;
+    private int currentPrefabIndex = 0;
+
+    private List<GameObject> placedObjects = new List<GameObject>();
 
     // Rotation variables
     private float previousAngle = 0f;
@@ -38,14 +40,13 @@ public class PlaceObject : MonoBehaviour
 
     void Update()
     {
-        if (objectPrefab == null || raycastManager == null) return;
+        if (objectPrefabs == null || objectPrefabs.Length == 0 || raycastManager == null) return;
 
         int planeCount = 0;
         foreach (var plane in planeManager.trackables)
             planeCount++;
 
-        if (!objectPlaced)
-            SetDebug("🔍 Planes found: " + planeCount + " - Tap to place!");
+        SetDebug("🔍 Planes: " + planeCount + " | Objects: " + placedObjects.Count + " - Tap to place!");
 
         // TWO FINGER ROTATION
         if (Touch.activeTouches.Count == 2 && selectedObject != null)
@@ -96,26 +97,31 @@ public class PlaceObject : MonoBehaviour
             EventSystem.current.IsPointerOverGameObject(touch.touchId))
             return;
 
-        // CHECK if tapping existing object
+        // CHECK if tapping an existing placed object
         Ray ray = arCamera.ScreenPointToRay(touch.screenPosition);
         RaycastHit hitInfo;
         if (Physics.Raycast(ray, out hitInfo))
         {
             GameObject tappedObject = hitInfo.collider.gameObject;
+            GameObject placedRoot = GetPlacedRoot(tappedObject);
 
-            if (tappedObject == selectedObject)
+            if (placedRoot != null)
             {
-                DeselectObject();
-                SetDebug("✅ Deselected!");
+                if (placedRoot == selectedObject)
+                {
+                    DeselectObject();
+                    SetDebug("✅ Deselected!");
+                }
+                else
+                {
+                    SelectObject(placedRoot);
+                    SetDebug("✅ Selected! Drag to move, 2 fingers to rotate.");
+                }
                 return;
             }
-
-            SelectObject(tappedObject);
-            SetDebug("✅ Selected! Drag to move, 2 fingers to rotate.");
-            return;
         }
 
-        // Tapped empty space - deselect
+        // Tapped empty space - deselect if something is selected
         if (selectedObject != null)
         {
             DeselectObject();
@@ -123,27 +129,38 @@ public class PlaceObject : MonoBehaviour
             return;
         }
 
-        // PLACE new object
+        // PLACE new object on plane
         if (raycastManager.Raycast(touch.screenPosition, hits, TrackableType.PlaneWithinPolygon))
         {
             Pose hitPose = hits[0].pose;
-            GameObject obj = Instantiate(objectPrefab, hitPose.position, Quaternion.identity);
 
-            // Lock object to real world position
+            // Pick current prefab and advance index
+            GameObject prefabToPlace = objectPrefabs[currentPrefabIndex];
+            currentPrefabIndex = (currentPrefabIndex + 1) % objectPrefabs.Length;
+
+            GameObject obj = Instantiate(prefabToPlace, hitPose.position, Quaternion.identity);
             obj.AddComponent<ARAnchor>();
 
             if (obj.GetComponent<Collider>() == null)
                 obj.AddComponent<BoxCollider>();
 
-            objectPlaced = true;
-            SetPlanesVisible(false);
-            DeselectObject();
-            SetDebug("✅ Placed! Tap object to select.");
+            placedObjects.Add(obj);
+            SetDebug("✅ Placed: " + prefabToPlace.name + " | Next: " + objectPrefabs[currentPrefabIndex].name);
         }
         else
         {
             SetDebug("❌ No plane found - keep scanning floor");
         }
+    }
+
+    private GameObject GetPlacedRoot(GameObject obj)
+    {
+        foreach (var placed in placedObjects)
+        {
+            if (obj == placed || obj.transform.IsChildOf(placed.transform))
+                return placed;
+        }
+        return null;
     }
 
     float GetAngleBetweenTouches(Vector2 pos0, Vector2 pos1)
@@ -204,20 +221,35 @@ public class PlaceObject : MonoBehaviour
     {
         if (selectedObject != null)
         {
+            placedObjects.Remove(selectedObject);
             Destroy(selectedObject);
             selectedObject = null;
             if (deleteButton != null)
                 deleteButton.SetActive(false);
-            objectPlaced = false;
-            SetPlanesVisible(true);
-            SetDebug("🔍 Scanning for planes...");
+
+            if (placedObjects.Count == 0)
+            {
+                SetPlanesVisible(true);
+                SetDebug("🔍 Scanning for planes...");
+            }
+            else
+            {
+                SetDebug("🗑️ Deleted! " + placedObjects.Count + " object(s) remaining.");
+            }
         }
     }
 
     public void SetFurniture(GameObject newPrefab)
     {
-        objectPrefab = newPrefab;
-        SetDebug("✅ Selected: " + newPrefab.name);
+        for (int i = 0; i < objectPrefabs.Length; i++)
+        {
+            if (objectPrefabs[i] == newPrefab)
+            {
+                currentPrefabIndex = i;
+                break;
+            }
+        }
+        SetDebug("✅ Selected: " + newPrefab.name + " - Tap floor to place!");
     }
 
     void SetDebug(string msg)
