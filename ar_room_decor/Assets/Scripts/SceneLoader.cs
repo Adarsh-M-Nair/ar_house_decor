@@ -3,23 +3,39 @@ using UnityEngine.SceneManagement;
 
 public class SceneLoader : MonoBehaviour
 {
+    // Splash → Home
     public void LoadHome()
     {
         SceneManager.LoadScene("HomeScene");
     }
 
+    // Home → Input
+    public void LoadInput()
+    {
+        SceneManager.LoadScene("InputScene");
+    }
+
+    // Input → Result
+    public void LoadResult()
+    {
+        SceneManager.LoadScene("ResultScene");
+    }
+
+    // Result → AR
     public void LoadAR()
     {
         SceneManager.LoadScene("ARScene");
     }
 
-    public void LoadBudget()
+    // Back to Home
+    public void LoadHomeFromAny()
     {
-        SceneManager.LoadScene("BudgetScene");
+        SceneManager.LoadScene("HomeScene");
     }
 
-    public void LoadSplash()
+    // Quit App (Optional)
+    public void QuitApp()
     {
-        SceneManager.LoadScene("SplashScene");
+        Application.Quit();
     }
 }
