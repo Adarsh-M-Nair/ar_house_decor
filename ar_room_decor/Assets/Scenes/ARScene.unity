@@ -749,8 +749,10 @@ MonoBehaviour:
   raycastManager: {fileID: 1090477036}
   planeManager: {fileID: 1090477037}
   objectPrefabs:
-  - {fileID: 7591310436007569359, guid: 65bc8606aade77e4cb106fd20635a94c, type: 3}
-  - {fileID: 2816352407258997050, guid: 3e57edd897440f149a5d15678b38ca4e, type: 3}
+  - {fileID: 452388968323736989, guid: 5caa14a8996af1743982c5dd0ffec20b, type: 3}
+  - {fileID: 9119717881938708936, guid: 15a2633875a195f409df63bf5f2baa57, type: 3}
+  - {fileID: 5119393419475489660, guid: 589dd06839c9c1244831d11d1707dee8, type: 3}
+  - {fileID: 2886611817536569507, guid: dca2e22dc9b381c4d80c8c5f931c09d4, type: 3}
   debugText: {fileID: 1099611130}
   deleteButton: {fileID: 5483019}
 --- !u!114 &1090477036
@@ -785,7 +787,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_PlanePrefab: {fileID: 327372701617677689, guid: dbecdd98954923545bb697ba0c6407e4, type: 3}
-  m_DetectionMode: 1
+  m_DetectionMode: 3
 --- !u!1 &1099611128
 GameObject:
   m_ObjectHideFlags: 0
