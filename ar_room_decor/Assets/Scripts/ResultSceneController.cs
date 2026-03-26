@@ -6,17 +6,26 @@ public class ResultSceneController : MonoBehaviour
     public TMP_Text storeText;
     public TMP_Text furnitureText;
 
-    private void Start()
-    {
-        Debug.Log("ResultScene Loaded");
-        string json = PlayerPrefs.GetString("Result");
-        WallAnalysisAPI.WallAnalysisResponse response =
-            JsonUtility.FromJson<WallAnalysisAPI.WallAnalysisResponse>(json);
-        Debug.Log("JSON: " + json);
+   void Start()
+{
+    Debug.Log("ResultScene Loaded");
 
-        DisplayStores(response);
-        DisplayFurniture(response);
+    string json = PlayerPrefs.GetString("Result");
+
+    Debug.Log("JSON: " + json);
+
+    if (string.IsNullOrEmpty(json))
+    {
+        Debug.LogError("No data received");
+        return;
     }
+
+    WallAnalysisAPI.WallAnalysisResponse response =
+        JsonUtility.FromJson<WallAnalysisAPI.WallAnalysisResponse>(json);
+
+    DisplayStores(response);
+    DisplayFurniture(response);
+}
 
     void DisplayStores(WallAnalysisAPI.WallAnalysisResponse response)
     {

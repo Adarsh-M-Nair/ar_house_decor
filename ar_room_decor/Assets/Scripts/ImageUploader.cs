@@ -1,15 +1,14 @@
 using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
 using System.IO;
 
 public class ImageUploader : MonoBehaviour
 {
-    public Transform previewContainer;
-    public GameObject previewPrefab;
+    private InputSceneController inputController;
 
-    public static List<Texture2D> uploadedImages =
-        new List<Texture2D>();
+    private void Start()
+    {
+        inputController = FindObjectOfType<InputSceneController>();
+    }
 
     public void UploadImage()
     {
@@ -17,7 +16,6 @@ public class ImageUploader : MonoBehaviour
 
 #if UNITY_EDITOR
 
-        // PC Upload (Unity Editor)
         string path = UnityEditor.EditorUtility.OpenFilePanel(
             "Select Wall Image",
             "",
@@ -31,21 +29,14 @@ public class ImageUploader : MonoBehaviour
 
 #else
 
-        // Android Gallery
-        NativeGallery.GetImagesFromGallery((paths) =>
+        NativeGallery.GetImageFromGallery((path) =>
         {
-            if (paths == null)
-            {
-                Debug.Log("No images selected");
-                return;
-            }
-
-            foreach (string path in paths)
+            if (path != null)
             {
                 LoadImage(path);
             }
 
-        }, "Select Wall Images", "image/*");
+        }, "Select Wall Image", "image/*");
 
 #endif
     }
@@ -55,21 +46,11 @@ public class ImageUploader : MonoBehaviour
         byte[] imageData = File.ReadAllBytes(path);
 
         Texture2D texture = new Texture2D(2, 2);
-        texture.LoadImage(imageData);
 
-        if (texture != null)
+        if (texture.LoadImage(imageData))
         {
-            uploadedImages.Add(texture);
-
-            GameObject preview =
-                Instantiate(previewPrefab, previewContainer);
-
-            preview.GetComponent<RawImage>().texture =
-                texture;
-        }
-        else
-        {
-            Debug.Log("Failed to load image");
+            Debug.Log("Image loaded successfully");
+            inputController.SetWallImage(texture);
         }
     }
 }

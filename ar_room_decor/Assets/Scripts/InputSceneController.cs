@@ -6,7 +6,6 @@ using System.Collections;
 public class InputSceneController : MonoBehaviour
 {
     public TMP_InputField budgetInput;
-    public RawImage wallImageDisplay;
     public Button analyzeButton;
     public TMP_Text statusText;
 
@@ -15,31 +14,51 @@ public class InputSceneController : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("InputSceneController started");
+
         api = WallAnalysisAPI.Instance;
+
+        analyzeButton.onClick.RemoveAllListeners();
         analyzeButton.onClick.AddListener(OnAnalyzeClick);
     }
 
     public void SetWallImage(Texture2D image)
     {
+        Debug.Log("Wall image set");
+
         capturedWallImage = image;
-        wallImageDisplay.texture = image;
-        statusText.text = "Image ready";
+
+        if (statusText != null)
+        {
+            statusText.text = "Image selected";
+        }
     }
 
     private void OnAnalyzeClick()
     {
+        Debug.Log("Analyze button clicked");
+
         if (capturedWallImage == null)
         {
+            Debug.LogWarning("No image selected");
             statusText.text = "Upload image first";
             return;
         }
 
-        int budget = int.Parse(budgetInput.text);
+        int budget = 0;
+
+        if (!string.IsNullOrEmpty(budgetInput.text))
+        {
+            int.TryParse(budgetInput.text, out budget);
+        }
+
         StartCoroutine(Analyze(budget));
     }
 
     IEnumerator Analyze(int budget)
     {
+        Debug.Log("Starting API call");
+
         statusText.text = "Analyzing...";
 
         float lat = 0;
@@ -62,20 +81,28 @@ public class InputSceneController : MonoBehaviour
     }
 
     void OnSuccess(WallAnalysisAPI.WallAnalysisResponse response)
-{
-    string json = JsonUtility.ToJson(response);
-    
-    Debug.Log("Saving JSON: " + json);
+    {
+        Debug.Log("API Success");
 
-    PlayerPrefs.SetString("Result", json);
-    PlayerPrefs.Save();   // IMPORTANT
+        string json = JsonUtility.ToJson(response);
 
-    UnityEngine.SceneManagement.SceneManager.LoadScene("ResultScene");
-}
+        Debug.Log("Saving JSON: " + json);
+
+        PlayerPrefs.SetString("Result", json);
+        PlayerPrefs.Save();
+
+        Debug.Log("Loading ResultScene");
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene("ResultScene");
+    }
 
     void OnError(string error)
-{
-    Debug.LogError("Backend Error: " + error);
-    statusText.text = error;
-}
+    {
+        Debug.LogError("API Error: " + error);
+
+        if (statusText != null)
+        {
+            statusText.text = "Error: " + error;
+        }
+    }
 }

@@ -6,8 +6,11 @@ using System;
 
 public class WallAnalysisAPI : MonoBehaviour
 {
-    private const string BASE_URL = "http://10.67.101.73:5000";
+    private const string BASE_URL = "http://192.168.1.80:5000";
 
+    // -----------------------------
+    // Store Data
+    // -----------------------------
     [System.Serializable]
     public class StoreData
     {
@@ -19,6 +22,9 @@ public class WallAnalysisAPI : MonoBehaviour
         public float distance;
     }
 
+    // -----------------------------
+    // Furniture Data
+    // -----------------------------
     [System.Serializable]
     public class FurnitureData
     {
@@ -31,6 +37,26 @@ public class WallAnalysisAPI : MonoBehaviour
         public string image_url;
     }
 
+    // -----------------------------
+    // Wall Color Data
+    // -----------------------------
+    [System.Serializable]
+    public class DominantColor
+    {
+        public int[] rgb;
+        public string hex;
+        public string name;
+    }
+
+    [System.Serializable]
+    public class WallAnalysisBatch
+    {
+        public DominantColor dominant_color;
+    }
+
+    // -----------------------------
+    // Request Model
+    // -----------------------------
     [System.Serializable]
     public class WallAnalysisRequest
     {
@@ -40,27 +66,17 @@ public class WallAnalysisAPI : MonoBehaviour
         public float user_lon;
     }
 
+    // -----------------------------
+    // Response Model
+    // -----------------------------
     [System.Serializable]
     public class WallAnalysisResponse
     {
         public string status;
+        public WallAnalysisBatch[] wall_analysis_batch;
         public StoreData[] nearby_stores;
         public FurnitureData[] recommended_furniture;
     }
-
-    [System.Serializable]
-public class WallAnalysisBatch
-{
-    public DominantColor dominant_color;
-}
-
-[System.Serializable]
-public class DominantColor
-{
-    public int[] rgb;
-    public string hex;
-    public string name;
-}
 
     public static WallAnalysisAPI Instance { get; private set; }
 
@@ -77,6 +93,9 @@ public class DominantColor
         }
     }
 
+    // -----------------------------
+    // Main API Call
+    // -----------------------------
     public IEnumerator AnalyzeWall(
         Texture2D wallImage,
         int budget,
@@ -97,45 +116,70 @@ public class DominantColor
 
         string jsonData = JsonUtility.ToJson(requestData);
 
+        Debug.Log("Sending request to: " + BASE_URL + "/analyze-wall");
+
         using (UnityWebRequest request =
             new UnityWebRequest(BASE_URL + "/analyze-wall", "POST"))
         {
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonData);
             request.uploadHandler = new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = new DownloadHandlerBuffer();
+
             request.SetRequestHeader("Content-Type", "application/json");
 
+            // WAIT for request
             yield return request.SendWebRequest();
 
-            if (request.result == UnityWebRequest.Result.Success)
+            Debug.Log("Request finished");
+
+            if (request.result != UnityWebRequest.Result.Success)
             {
-                try
+                Debug.LogError("Network Error: " + request.error);
+                onError?.Invoke(request.error);
+                yield break;
+            }
+
+            try
+            {
+                string responseText = request.downloadHandler.text;
+
+                Debug.Log("Backend Response: " + responseText);
+
+                WallAnalysisResponse response =
+                    JsonUtility.FromJson<WallAnalysisResponse>(responseText);
+
+                if (response != null && response.status == "success")
                 {
-                    string responseText = request.downloadHandler.text;
-                    Debug.Log("Backend Response: " + responseText);
-                    WallAnalysisResponse response =
-                        JsonUtility.FromJson<WallAnalysisResponse>(responseText);
+                    Debug.Log("API Success");
 
                     onSuccess?.Invoke(response);
                 }
-                catch (Exception e)
+                else
                 {
-                    onError?.Invoke("JSON error: " + e.Message);
+                    Debug.LogError("Invalid response");
+                    onError?.Invoke("Invalid response from server");
                 }
             }
-            else
+            catch (Exception e)
             {
-                onError?.Invoke("Network error: " + request.error);
+                Debug.LogError("JSON Parse Error: " + e.Message);
+                onError?.Invoke(e.Message);
             }
         }
     }
 
+    // -----------------------------
+    // Convert Texture
+    // -----------------------------
     private string ConvertTextureToBase64(Texture2D texture)
     {
         byte[] pngBytes = texture.EncodeToPNG();
         return Convert.ToBase64String(pngBytes);
     }
 
+    // -----------------------------
+    // Location (Mock)
+    // -----------------------------
     public IEnumerator GetCurrentLocation(Action<float, float> callback)
     {
         callback?.Invoke(9.9816f, 76.2999f);

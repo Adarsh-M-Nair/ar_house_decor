@@ -99,4 +99,5 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
 /Assets/Scripts/SupabaseConfig.cs
-Assets/Scripts/SupabaseConfig.cs.meta
+/Assets/Scripts/SupabaseConfig.cs.meta
+/Backend/venv
