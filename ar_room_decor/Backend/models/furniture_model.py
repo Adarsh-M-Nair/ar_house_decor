@@ -3,11 +3,11 @@ from database.supabase_client import supabase
 
 def get_furniture_by_budget_and_color(budget, color):
     """
-    Returns furniture items filtered by budget and wall color.
+    Returns furniture items filtered by wall color.
+    Note: Budget filtering not implemented yet (no price column in DB)
     """
     response = supabase.table("furniture") \
         .select("*") \
-        .lte("price", budget) \
         .eq("color", color) \
         .execute()
 

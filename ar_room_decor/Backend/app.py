@@ -4,6 +4,7 @@ from flask_cors import CORS
 from routes.recommendation_routes import recommendation_bp
 from routes.cost_routes import cost_bp
 from routes.diy_routes import diy_bp
+from routes.wall_routes import wall_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -11,10 +12,11 @@ CORS(app)
 app.register_blueprint(recommendation_bp)
 app.register_blueprint(cost_bp)
 app.register_blueprint(diy_bp)
+app.register_blueprint(wall_bp)
 
 @app.route("/")
 def home():
     return "AR Room Decor Backend Running Successfully!"
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
