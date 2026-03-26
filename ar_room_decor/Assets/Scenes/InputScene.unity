@@ -2199,8 +2199,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c898a552a856d04d9e12d7804103f31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImageUploader
-  previewContainer: {fileID: 0}
-  previewPrefab: {fileID: 0}
 --- !u!1 &1077236019
 GameObject:
   m_ObjectHideFlags: 0
@@ -3130,7 +3128,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputSceneController
   budgetInput: {fileID: 2098648823}
-  wallImageDisplay: {fileID: 0}
   analyzeButton: {fileID: 927442641}
   statusText: {fileID: 601591059}
 --- !u!1 &1499532475
@@ -3270,8 +3267,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c898a552a856d04d9e12d7804103f31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ImageUploader
-  previewContainer: {fileID: 0}
-  previewPrefab: {fileID: 0}
 --- !u!1 &1510221818
 GameObject:
   m_ObjectHideFlags: 0
