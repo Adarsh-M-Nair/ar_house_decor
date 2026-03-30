@@ -115,8 +115,3 @@ Assets/
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support and questions, please open an issue on the GitHub repository.</content>
-<parameter name="filePath">d:\Coding\Projects\AR House Decor\AR_House_Decor\ar_house_decor\ar_room_decor\README.md
